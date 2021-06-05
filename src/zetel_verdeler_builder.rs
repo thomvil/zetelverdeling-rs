@@ -1,13 +1,13 @@
 use super::*;
 
 pub struct ZetelVerdelerBuilder<K: Debug + Clone + PartialEq + Eq + Hash> {
-    stem_aantallen: HashMap<K, usize>,
+    stem_aantallen: HashMap<K, u32>,
     kiesdrempel_perc: Option<f32>,
-    zetels: Option<usize>,
+    zetels: Option<u32>,
 }
 
 impl<K: Debug + Clone + PartialEq + Eq + Hash> ZetelVerdelerBuilder<K> {
-    pub fn new(stem_aantallen: &[(K, usize)]) -> Self {
+    pub fn new(stem_aantallen: &[(K, u32)]) -> Self {
         Self {
             stem_aantallen: stem_aantallen.iter().cloned().collect(),
             kiesdrempel_perc: None,
@@ -15,7 +15,7 @@ impl<K: Debug + Clone + PartialEq + Eq + Hash> ZetelVerdelerBuilder<K> {
         }
     }
 
-    pub fn zetels(mut self, zetels: usize) -> Self {
+    pub fn zetels(mut self, zetels: u32) -> Self {
         self.zetels = Some(zetels);
         self
     }

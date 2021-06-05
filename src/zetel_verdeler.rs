@@ -2,12 +2,12 @@ use super::*;
 
 #[derive(Debug)]
 pub struct ZetelVerdeler<K: Debug + Clone + PartialEq + Eq + Hash> {
-    pub stem_aantallen: HashMap<K, usize>,
+    pub stem_aantallen: HashMap<K, u32>,
     pub kiesdrempel_perc: f32,
-    pub zetels: usize,
+    pub zetels: u32,
 }
 
-impl<K:Debug +  Clone + PartialEq + Eq + Hash> ZetelVerdeler<K> {
+impl<K: Debug + Clone + PartialEq + Eq + Hash> ZetelVerdeler<K> {
     pub fn totaal_stemmen(&self) -> f32 {
         self.stem_aantallen
             .values()
@@ -15,7 +15,7 @@ impl<K:Debug +  Clone + PartialEq + Eq + Hash> ZetelVerdeler<K> {
             .sum()
     }
 
-    pub fn partij_empty_hm(&self) -> HashMap<K, usize> {
+    pub fn partij_empty_hm(&self) -> HashMap<K, u32> {
         self.stem_aantallen
             .iter()
             .fold(HashMap::new(), |mut acc, (partij, _)| {
