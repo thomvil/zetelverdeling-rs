@@ -42,7 +42,7 @@ impl<K: Clone + Eq + Hash> ZetelVerdeler<K> {
 }
 
 impl<T: Clone + Eq + Hash, U: Clone + Eq + Hash> GelaagdeZetelVerdeler<T, U> {
-    pub fn dhondt(&self) -> HashMap<(T, U), u32> {
+    pub fn dhondt(&self) -> ZetelVerdeling<T, U> {
         self.kieskringen
             .iter()
             .map(move |(kieskring_naam, zv)| {
@@ -61,7 +61,7 @@ impl<T: Clone + Eq + Hash, U: Clone + Eq + Hash> GelaagdeZetelVerdeler<T, U> {
             .collect()
     }
 
-    pub fn imperiali(&self) -> HashMap<(T, U), u32> {
+    pub fn imperiali(&self) -> ZetelVerdeling<T, U> {
         self.kieskringen
             .iter()
             .map(move |(kieskring_naam, zv)| {
@@ -150,11 +150,13 @@ mod tests {
             .finish();
         let zetels = gzv.dhondt();
 
-        assert_eq!(13, *zetels.get(&("zonder drempel", "Partij A")).unwrap());
-        assert_eq!(8, *zetels.get(&("zonder drempel", "Partij B")).unwrap());
-        assert_eq!(4, *zetels.get(&("zonder drempel", "Partij C")).unwrap());
-        assert_eq!(16, *zetels.get(&("met drempel", "Partij A")).unwrap());
-        assert_eq!(9, *zetels.get(&("met drempel", "Partij B")).unwrap());
-        assert_eq!(0, *zetels.get(&("met drempel", "Partij C")).unwrap());
+        dbg!(&zetels);
+
+        assert_eq!(13, zetels.get("zonder drempel", "Partij A").unwrap());
+        assert_eq!(8, zetels.get("zonder drempel", "Partij B").unwrap());
+        assert_eq!(4, zetels.get("zonder drempel", "Partij C").unwrap());
+        assert_eq!(16, zetels.get("met drempel", "Partij A").unwrap());
+        assert_eq!(9, zetels.get("met drempel", "Partij B").unwrap());
+        assert_eq!(0, zetels.get("met drempel", "Partij C").unwrap());
     }
 }

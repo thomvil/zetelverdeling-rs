@@ -52,6 +52,7 @@ impl<T: Eq + Hash, U> GelaagdeZetelVerdelerBuilder<T, U> {
 }
 
 impl<T: Clone + Eq + Hash, U: Clone + Eq + Hash> GelaagdeZetelVerdelerBuilder<T, U> {
+    #[allow(clippy::type_complexity)]
     pub fn from_data(
         data: &[(T, &[(U, u32)], u32, f32)],
     ) -> Result<GelaagdeZetelVerdeler<T, U>, String> {
@@ -67,6 +68,7 @@ impl<T: Clone + Eq + Hash, U: Clone + Eq + Hash> GelaagdeZetelVerdelerBuilder<T,
             .map(|gzv| gzv.finish())
     }
 
+    #[allow(clippy::type_complexity)]
     pub fn constante_drempel(
         kiesdrempel: f32,
         data: &[(T, u32, &[(U, u32)])],
@@ -108,12 +110,12 @@ mod tests {
 
         let zetels = gzv.unwrap().dhondt();
 
-        assert_eq!(13, *zetels.get(&("zonder drempel", "Partij A")).unwrap());
-        assert_eq!(8, *zetels.get(&("zonder drempel", "Partij B")).unwrap());
-        assert_eq!(4, *zetels.get(&("zonder drempel", "Partij C")).unwrap());
-        assert_eq!(16, *zetels.get(&("met drempel", "Partij A")).unwrap());
-        assert_eq!(9, *zetels.get(&("met drempel", "Partij B")).unwrap());
-        assert_eq!(0, *zetels.get(&("met drempel", "Partij C")).unwrap());
+        assert_eq!(13, zetels.get("zonder drempel", "Partij A").unwrap());
+        assert_eq!(8, zetels.get("zonder drempel", "Partij B").unwrap());
+        assert_eq!(4, zetels.get("zonder drempel", "Partij C").unwrap());
+        assert_eq!(16, zetels.get("met drempel", "Partij A").unwrap());
+        assert_eq!(9, zetels.get("met drempel", "Partij B").unwrap());
+        assert_eq!(0, zetels.get("met drempel", "Partij C").unwrap());
     }
 
     #[test]
