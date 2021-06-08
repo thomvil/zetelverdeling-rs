@@ -1,7 +1,7 @@
 use super::*;
 
-impl<K: Debug + Clone + PartialEq + Eq + Hash> ZetelVerdeler<K> {
-    pub fn kiesdelers(&self, deler_reeks: RangeInclusive<u32>) -> Vec<(K, u32, u32)> {
+impl<K: Clone> ZetelVerdeler<K> {
+    fn kiesdelers(&self, deler_reeks: RangeInclusive<u32>) -> Vec<(K, u32, u32)> {
         let totaal_stemmen = self.totaal_stemmen();
         self.stem_aantallen
             .iter()
@@ -17,7 +17,9 @@ impl<K: Debug + Clone + PartialEq + Eq + Hash> ZetelVerdeler<K> {
             .flatten()
             .collect()
     }
+}
 
+impl<K: Clone + Eq + Hash> ZetelVerdeler<K> {
     pub fn dhondt(&self) -> HashMap<K, u32> {
         self.kiesdeler_verdeling(1..=self.zetels)
     }
@@ -39,6 +41,48 @@ impl<K: Debug + Clone + PartialEq + Eq + Hash> ZetelVerdeler<K> {
     }
 }
 
+impl<T: Clone + Eq + Hash, U: Clone + Eq + Hash> GelaagdeZetelVerdeler<T, U> {
+    pub fn dhondt(&self) -> HashMap<(T, U), u32> {
+        self.kieskringen
+            .iter()
+            .map(move |(kieskring_naam, zv)| {
+                zv.dhondt().into_iter().map(move |(partij_naam, zetels)| {
+                    ((kieskring_naam.clone(), partij_naam), zetels)
+                })
+            })
+            .flatten()
+            .collect()
+    }
+
+    pub fn dhondt_per_kieskring(&self) -> HashMap<T, HashMap<U, u32>> {
+        self.kieskringen
+            .iter()
+            .map(|(kieskring_naam, zv)| (kieskring_naam.clone(), zv.dhondt()))
+            .collect()
+    }
+
+    pub fn imperiali(&self) -> HashMap<(T, U), u32> {
+        self.kieskringen
+            .iter()
+            .map(move |(kieskring_naam, zv)| {
+                zv.imperiali()
+                    .into_iter()
+                    .map(move |(partij_naam, zetels)| {
+                        ((kieskring_naam.clone(), partij_naam), zetels)
+                    })
+            })
+            .flatten()
+            .collect()
+    }
+
+    pub fn imperiali_per_kieskring(&self) -> HashMap<T, HashMap<U, u32>> {
+        self.kieskringen
+            .iter()
+            .map(|(kieskring_naam, zv)| (kieskring_naam.clone(), zv.imperiali()))
+            .collect()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -46,9 +90,9 @@ mod tests {
     #[test]
     fn dhondt() {
         let zv = ZetelVerdelerBuilder::new(&[
-            ("Partij A".to_string(), 6500),
-            ("Partij B".to_string(), 3800),
-            ("Partij C".to_string(), 2300),
+            ("Partij A", 6500),
+            ("Partij B", 3800),
+            ("Partij C", 2300),
         ])
         .zetels(25)
         .finish()
@@ -61,9 +105,9 @@ mod tests {
         assert_eq!(Some(4), dzv.get("Partij C").cloned());
 
         let zv = ZetelVerdelerBuilder::new(&[
-            ("Partij A".to_string(), 6500),
-            ("Partij B".to_string(), 3800),
-            ("Partij C".to_string(), 2300),
+            ("Partij A", 6500),
+            ("Partij B", 3800),
+            ("Partij C", 2300),
         ])
         .zetels(25)
         .kiesdrempel(20.)
@@ -75,5 +119,42 @@ mod tests {
         assert_eq!(Some(16), dzv.get("Partij A").cloned());
         assert_eq!(Some(9), dzv.get("Partij B").cloned());
         assert_eq!(Some(0), dzv.get("Partij C").cloned());
+    }
+
+    #[test]
+    fn dhondt_gelaagd() {
+        let gzv = GelaagdeZetelVerdelerBuilder::default()
+            .add(
+                "zonder drempel",
+                ZetelVerdelerBuilder::new(&[
+                    ("Partij A", 6500),
+                    ("Partij B", 3800),
+                    ("Partij C", 2300),
+                ])
+                .zetels(25)
+                .finish()
+                .unwrap(),
+            )
+            .add(
+                "met drempel",
+                ZetelVerdelerBuilder::new(&[
+                    ("Partij A", 6500),
+                    ("Partij B", 3800),
+                    ("Partij C", 2300),
+                ])
+                .zetels(25)
+                .kiesdrempel(20.)
+                .finish()
+                .unwrap(),
+            )
+            .finish();
+        let zetels = gzv.dhondt();
+
+        assert_eq!(13, *zetels.get(&("zonder drempel", "Partij A")).unwrap());
+        assert_eq!(8, *zetels.get(&("zonder drempel", "Partij B")).unwrap());
+        assert_eq!(4, *zetels.get(&("zonder drempel", "Partij C")).unwrap());
+        assert_eq!(16, *zetels.get(&("met drempel", "Partij A")).unwrap());
+        assert_eq!(9, *zetels.get(&("met drempel", "Partij B")).unwrap());
+        assert_eq!(0, *zetels.get(&("met drempel", "Partij C")).unwrap());
     }
 }
